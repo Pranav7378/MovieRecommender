@@ -4,10 +4,11 @@ import requests
 import streamlit as st
 import os
 import json
+import io
 
 st.set_page_config(page_title="🎬 Movie Recommender", layout="wide")
 
-# At the very top, after st.set_page_config(...)
+# Add background image from URL
 def add_bg_from_url(url: str):
     st.markdown(
         f"""
@@ -30,11 +31,6 @@ add_bg_from_url(
     "https://miro.medium.com/v2/resize:fit:1100/format:webp/1*qR08Jxq0IHdvFtBsUhCe3Q.jpeg"
 )
 
-
-# ─────────────────────────────────────
-# Streamlit UI config
-# ─────────────────────────────────────
-
 st.title("🍿 Movie Recommendation System")
 
 OMDB_KEY = st.secrets["OMDB_KEY"]
@@ -42,15 +38,22 @@ PLACEHOLDER_IMAGE = "https://via.placeholder.com/300x450?text=No+Image"
 POSTER_CACHE_DIR = "poster_cache"
 os.makedirs(POSTER_CACHE_DIR, exist_ok=True)
 
-# ─────────────────────────────────────
-# Data loading
-# ─────────────────────────────────────
+# Load movies dict locally
 movies = pd.DataFrame(pickle.load(open("movie_dict.pkl", "rb")))
-similarity = pickle.load(open("similarity.pkl", "rb"))
 
-# ─────────────────────────────────────
-# Poster fetcher with metadata & disk cache
-# ─────────────────────────────────────
+# Load similarity from Hugging Face dataset URL
+HUGGINGFACE_SIMILARITY_URL = "https://huggingface.co/datasets/PranavAI/similarity/resolve/main/similarity.pkl"
+
+@st.cache_data(ttl=86400)
+def load_similarity_from_url(url=HUGGINGFACE_SIMILARITY_URL):
+    response = requests.get(url)
+    response.raise_for_status()
+    file_bytes = io.BytesIO(response.content)
+    similarity = pickle.load(file_bytes)
+    return similarity
+
+similarity = load_similarity_from_url()
+
 @st.cache_data(ttl=86400)  # cache in memory 1 day
 def fetch_metadata(title):
     safe_title = title.replace(" ", "_")
@@ -61,7 +64,7 @@ def fetch_metadata(title):
         with open(cache_path, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    # Otherwise, call API
+    # Otherwise, call OMDb API
     try:
         res = requests.get("https://www.omdbapi.com/", params={
             "apikey": OMDB_KEY, "t": title, "r": "json"
@@ -96,9 +99,6 @@ def fetch_metadata(title):
             "plot": "⚠️ OMDb unreachable"
         }
 
-# ─────────────────────────────────────
-# Recommendation logic
-# ─────────────────────────────────────
 def recommend(title):
     idx = movies[movies["title"] == title].index[0]
     distances = similarity[idx]
@@ -111,11 +111,7 @@ def recommend(title):
         recommendations.append((movie_title, meta))
     return recommendations
 
-# ─────────────────────────────────────
-# UI: genre filter + recommendations
-# ─────────────────────────────────────
-
-# Genre filter (optional basic implementation using contains)
+# Genre filter (optional)
 genres = sorted(set(g for gs in movies.get("genres", pd.Series([""])).dropna().astype(str) for g in gs.split("|")))
 selected_genre = st.selectbox("🎭 Filter by Genre (optional):", ["All"] + genres)
 

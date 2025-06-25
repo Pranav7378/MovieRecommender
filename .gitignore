@@ -1,0 +1,30 @@
+# Ignore virtual environment
+venv/
+.venv/
+
+# Ignore Streamlit secrets (do NOT upload secrets to GitHub)
+.streamlit/secrets.toml
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Dataset or large files (optional, if you don't want to push CSVs)
+*.csv
+
+# Environment and dependency logs
+.env
+*.log
+
+# IDE/editor settings
+.vscode/
+.idea/
+*.iml
+
+# OS-specific files
+.DS_Store
+Thumbs.db

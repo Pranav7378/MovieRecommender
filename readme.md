@@ -4,13 +4,13 @@
 
 This project is a **Streamlit-based movie recommendation system** that suggests similar movies to a user's selection. It utilizes a pre-trained model for recommendations and fetches movie metadata like posters, ratings, and plots from the OMDb API. The app is deployed and accessible via a web link.
 
-\<div align="center"\>
-\<a href="[https://movierecommenderbypranav.streamlit.app](https://movierecommenderbypranav.streamlit.app)"\>
-\<img src="[https://miro.medium.com/v2/resize:fit:1100/format:webp/1\*qR08Jxq0IHdvFtBsUhCe3Q.jpeg](https://miro.medium.com/v2/resize:fit:1100/format:webp/1*qR08Jxq0IHdvFtBsUhCe3Q.jpeg)" alt="Movie Recommendation System Demo" width="700"/\>
-\</a\>
-\<br /\>
-*Click the image to see a live demo\!*
-\</div\>
+<div align="center">
+  <a href="https://movierecommenderbypranav.streamlit.app">
+    <img src="https://miro.medium.com/v2/resize:fit:1100/format:webp/1*qR08Jxq0IHdvFtBsUhCe3Q.jpeg" alt="Movie Recommendation System Demo" width="700"/>
+  </a>
+  <br />
+  _Click the image to see a live demo!_
+</div>
 
 -----
 

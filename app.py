@@ -43,16 +43,30 @@ movies = pd.DataFrame(pickle.load(open("movie_dict.pkl", "rb")))
 
 # Load similarity from Hugging Face dataset URL
 HUGGINGFACE_SIMILARITY_URL = "https://huggingface.co/datasets/PranavAI/similarity/resolve/main/similarity.pkl"
+LOCAL_SIMILARITY_FILE = "similarity.pkl"
 
 @st.cache_data(ttl=86400)
-def load_similarity_from_url(url=HUGGINGFACE_SIMILARITY_URL):
-    response = requests.get(url)
+def load_similarity():
+    # Try loading locally first
+    if os.path.exists(LOCAL_SIMILARITY_FILE):
+        with open(LOCAL_SIMILARITY_FILE, "rb") as f:
+            similarity = pickle.load(f)
+        return similarity
+
+    # Fallback to URL if local file doesn't exist
+    response = requests.get(HUGGINGFACE_SIMILARITY_URL)
     response.raise_for_status()
     file_bytes = io.BytesIO(response.content)
     similarity = pickle.load(file_bytes)
+
+    # Optionally save locally for future runs
+    #with open(LOCAL_SIMILARITY_FILE, "wb") as f:
+       # pickle.dump(similarity, f)
+
     return similarity
 
-similarity = load_similarity_from_url()
+
+similarity = load_similarity()
 
 @st.cache_data(ttl=86400)  # cache in memory 1 day
 def fetch_metadata(title):
@@ -111,15 +125,8 @@ def recommend(title):
         recommendations.append((movie_title, meta))
     return recommendations
 
-# Genre filter (optional)
-genres = sorted(set(g for gs in movies.get("genres", pd.Series([""])).dropna().astype(str) for g in gs.split("|")))
-selected_genre = st.selectbox("🎭 Filter by Genre (optional):", ["All"] + genres)
 
-filtered_movies = movies
-if selected_genre != "All":
-    filtered_movies = movies[movies["genres"].fillna("").str.contains(selected_genre, case=False)]
-
-selected_movie = st.selectbox("🎞️ Choose a movie:", filtered_movies["title"].values)
+selected_movie = st.selectbox("🎞️ Choose a movie:", movies["title"].values)
 
 if st.button("🔍 Recommend"):
     with st.spinner("Fetching posters and metadata..."):
